@@ -37,7 +37,7 @@ async function loadUserProfile() {
     const userTweets = await fetchUserTweets();
     const userFollowers = await fetchUserFollowers();
     console.log(`Имя: ${userInfo.name}`);
-    console.log(`Твиты: ${userTweets.join(',')}`); // userTweets[0], userTweets[1], userTweets[2]
+    console.log(`Твиты: ${userTweets.join(',')}`); // userTweets[0], userTweets[1], userTweets[2].
     console.log(`Подписчики: ${userFollowers}`);
 }
 
