@@ -26,7 +26,7 @@ async function fetchUserTweets() {
 fetchUserFollowers = async () => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            const followers = 1500;
+            const followers = 15000;
             resolve(followers);
         }, 500);
     });
@@ -37,9 +37,9 @@ async function loadUserProfile() {
     const userTweets = await fetchUserTweets();
     const userFollowers = await fetchUserFollowers();
     console.log(`Имя: ${userInfo.name}`);
+    console.log(`Био: ${userInfo.bio}`);
     console.log(`Твиты: ${userTweets.join(',')}`); // userTweets[0], userTweets[1], userTweets[2]
     console.log(`Подписчики: ${userFollowers}`);
 }
 
 loadUserProfile();
-
