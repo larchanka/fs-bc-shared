@@ -5,7 +5,7 @@ function fetchUserInfo() {
         name: 'Алекс Алгоритмов',
         bio: 'Строю будущее, по одному циклу за раз.'
       });
-    }, 1000); // Задержка 1 секунда
+    }, 1000); // 1 секунда задержки
   });
 }
 
@@ -17,29 +17,25 @@ function fetchUserTweets() {
         'Баг или фича? 🤔 #программирование',
         'Рефакторинг старого кода - это как археология.'
       ]);
-    }, 1500); // Задержка 1.5 секунды
+    }, 1500); // 1.5 секунды задержки
   });
 }
 
 function fetchUserFollowers() {
   return new Promise(resolve => {
     setTimeout(() => {
-      resolve(15000);
-    }, 500); // Задержка 0.5 секунды
+      resolve(150);
+    }, 500); // 0.5 секунды задержки
   });
 }
 
 async function loadUserProfile() {
   console.log('Начинаем загрузку профиля...');
 
-  // Параллельная загрузка всех данных
-  const [userInfo, tweets, followers] = await Promise.all([
-    fetchUserInfo(),
-    fetchUserTweets(),
-    fetchUserFollowers()
-  ]);
+  const userInfo = await fetchUserInfo();
+  const tweets = await fetchUserTweets();
+  const followers = await fetchUserFollowers();
 
-  // Вывод результата
   console.log(`Имя: ${userInfo.name}`);
   console.log(`Био: ${userInfo.bio}`);
   console.log(`Твиты: ${tweets.join(', ')}`);
