@@ -42,4 +42,3 @@ async function loadUserProfile() {
 }
 
 loadUserProfile(); // Не забудь вызвать функцию
-console.log("Try programiz.pro");
