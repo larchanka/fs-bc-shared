@@ -1,1 +1,41 @@
+function fetchWeather() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ temp: 15, condition: 'Облачно' });
+    }, 1100);
+  });
+}
 
+function fetchExchangeRate() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([91.5]);
+    }, 700);
+  });
+}
+
+function fetchTopHeadline() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('Ученые обнаружили новый способ изучения асинхронности!');
+    });
+  }, 500);
+}
+
+function loadDashboardWidget() {
+  Promise.all([fetchWeather(), fetchExchangeRate(), fetchTopHeadline()])
+    .then((results) => {
+      const [weather, rate, headline] = results;
+
+      console.log('--- Данные для виджета (через .then) ---');
+      console.log(`Погода: ${weather.temp}°C, ${weather.condition}`);
+      console.log(`Курс USD/RUB: ${rate}`);
+      console.log(`Главная новость: ${headline}`);
+      console.log('----------------------------------------');
+    })
+    .catch((error) => {
+      console.error('Ошибка при загрузке данных', error);
+    });
+}
+
+loadDashboardWidget();
