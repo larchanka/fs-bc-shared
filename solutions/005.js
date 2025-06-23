@@ -1,142 +1,100 @@
-//на эту задачу уже не оставалось особо времени, потому в основном нагенерил её
-//задачи интересные, потому постараюсь на выходных самостоятельно разобраться и сделать
-//не совсем понял на счёт сроков, потому на всякий случай кидаю хотя бы такой вариант
+//переделанная
+const log = console.log
+const sec = 1000
+//2.2
+const rng = (min, max) => {
+    return (Math.random() * (max - min ) + min) * 1000
+}
 
-// 1. Имитация загрузки деталей альбома
-async function fetchAlbumDetails(albumId) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
+//1 имитация загрузки деталей альбома 
+const fetchAlbumDetails = (albumId) => {
+    // 1.1
+    return new Promise((resolve, reject) => {
+        // 1.2
+        setTimeout(() => {
+            resolve({
+                id: albumId, // а нельзя ли просто одно имя ключа и значения задать и написать просто один раз albumId?
+                title: "Синтаксический сахар",
+                artist: "Нейросеть Нейронович",
+                tracks: ["Асинхронная Баллада", "Цикл Бесконечности", "Баг в Матрице"]
+            })
+        }, 0.8 * sec)
+    })
+}
+
+//2 Имитация запроса рекомендаций
+const fetchRecommendations = (engineId, albumId) => {
+    //2.2
+    return new Promise(resolve => {
+        setTimeout(() => {
         resolve({
-          id: albumId,
-          title: 'Синтаксический Сахар',
-          artist: 'Нейросеть Нейронович',
-          tracks: ['Асинхронная Баллада', 'Цикл Бесконечности', 'Баг в Матрице']
-        });
-      }, 800); // 0.8 секунды
-    });
-  }
-  
-  // 2. Имитация запроса рекомендаций
-  async function fetchRecommendations(engineId, albumId) {
-    return new Promise((resolve) => {
-      // Случайная задержка от 0.5 до 2 секунд
-      const delay = Math.random() * 1500 + 500;
-      
-      setTimeout(() => {
-        resolve({
-          engine: engineId,
-          similarAlbums: [
-            `Похожий альбом от ${engineId} 1`,
-            `Похожий альбом от ${engineId} 2`,
-            `Похожий альбом от ${engineId} 3`
-          ]
-        });
-      }, delay);
-    });
-  }
-  
-  // 3. Функция таймаута
-  function timeoutPromise(delay, message) {
+            engine: engineId, // 2.1 какой движок ответил
+            albumId: albumId,
+            similarAlbums: [
+            `Похожий альбом 1 от ${engineId}`,
+            `Похожий альбом 2 от ${engineId}`
+            ]
+        }, rng(0.5, 2) * sec)
+    })
+})
+}
+
+//3 Имитация таймаута
+const timeoutPromise = (delay, message) => { //вроде ж синхронная должна быть, не перепутал?
     return new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(message));
-      }, delay);
-    });
-  }
-  
-  // 4. Основная логика загрузки страницы альбома
-  async function loadAlbumPage(albumId, recommendationEngines, totalTimeout) {
-    console.log(`🎵 Начинаем загрузку страницы альбома ${albumId}...`);
-    console.log(`⏱️  Общий таймаут: ${totalTimeout} мс`);
-    console.log(`🔧 Движки рекомендаций: ${recommendationEngines.join(', ')}`);
-    
+        setTimeout(() => {
+            reject(new Error(message))
+        }, delay)
+    })
+}
+
+//4 Основная логика загрузки страницы
+const loadAlbumPage = async (albumId, recommendationEngines, totalTimeout) => {
+    //4.1 - 4.3:
+    log(`ID альбома: ${albumId} 
+ID движков рекомендаций: ${recommendationEngines}
+Общее время ожидания в мс: ${totalTimeout}`) 
+    // 5 
+    // А
+    const fastestRecommendationsPromise = Promise.race(
+        recommendationEngines.map(engineId => {
+            // каждый движок стартует с случайной задержкой 0-200мс
+            const startDelay = Math.random() * 200
+            
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(fetchRecommendations(engineId, albumId))
+                }, startDelay)
+            }).then(promise => promise)
+        })
+    )    
+    // Б
+    const dataFetchPromise = Promise.all([
+        fetchAlbumDetails(albumId),      
+        fastestRecommendationsPromise   
+      ])
+    // 6 try catch
     try {
-      // Шаг А: Получение самых быстрых рекомендаций
-      const fastestRecommendationsPromise = Promise.race(
-        recommendationEngines.map(engineId => fetchRecommendations(engineId, albumId))
-      );
-      
-      // Шаг Б: Параллельная загрузка основных данных
-      const dataFetchPromise = Promise.all([
-        fetchAlbumDetails(albumId),
-        fastestRecommendationsPromise
-      ]);
-      
-      // Шаг В: Реализация общего таймаута
-      const overallTimeoutPromise = timeoutPromise(
-        totalTimeout, 
-        `Страница альбома ${albumId} не загрузилась за ${totalTimeout} мс`
-      );
-      
-      // Финальное соревнование: данные ИЛИ таймаут
-      const result = await Promise.race([
-        dataFetchPromise,
-        overallTimeoutPromise
-      ]);
-      
-      // Если мы здесь, dataFetchPromise успел завершиться
-      const [albumDetails, recommendations] = result;
-      
-      console.log('\n✅ --- Страница альбома загружена ---');
-      console.log(`🎼 Альбом: "${albumDetails.title}"`);
-      console.log(`🎤 Исполнитель: ${albumDetails.artist}`);
-      console.log(`📝 Треки:`);
-      albumDetails.tracks.forEach((track, index) => {
-        console.log(`   ${index + 1}. ${track}`);
-      });
-      console.log(`💡 Рекомендации (от ${recommendations.engine}):`);
-      recommendations.similarAlbums.forEach((album, index) => {
-        console.log(`   ${index + 1}. ${album}`);
-      });
-      
+        // 5 В
+        const result = await Promise.race([
+            dataFetchPromise,
+            timeoutPromise(totalTimeout, `Превышено время ожидания ${totalTimeout}мс`)
+        ])
+        
+        const [albumDetails, recommendations] = result
+        
+        log('Детали альбома:', albumDetails)
+        log('Треклист:', albumDetails.tracks)
+        log(`Рекомендации от движка ${recommendations.engine}:`, recommendations.similarAlbums)
+        
     } catch (error) {
-      console.log('\n❌ --- Ошибка загрузки страницы альбома ---');
-      console.error(`🚫 Причина: ${error.message}`);
+        log('Произошла ошибка:', error.message)
     }
-  }
-  
-  // Функция для демонстрации работы
-  async function runDemo() {
-    console.log('='.repeat(60));
-    console.log('🎵 ДЕМОНСТРАЦИЯ МУЗЫКАЛЬНОГО СЕРВИСА');
-    console.log('='.repeat(60));
-    
-    // Тест 1: Успешная загрузка с достаточным таймаутом
-    console.log('\n📋 ТЕСТ 1: Успешная загрузка (таймаут 3000 мс)');
-    console.log('-'.repeat(50));
-    await loadAlbumPage(
-      'album-123',
-      ['engine-A', 'engine-B', 'engine-C'],
-      3000
-    );
-    
-    // Небольшая пауза между тестами
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Тест 2: Таймаут (слишком короткое время ожидания)
-    console.log('\n📋 ТЕСТ 2: Таймаут (таймаут 500 мс)');
-    console.log('-'.repeat(50));
-    await loadAlbumPage(
-      'album-456',
-      ['engine-X', 'engine-Y'],
-      500
-    );
-    
-    // Небольшая пауза между тестами
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Тест 3: Пограничный случай
-    console.log('\n📋 ТЕСТ 3: Пограничный случай (таймаут 1500 мс)');
-    console.log('-'.repeat(50));
-    await loadAlbumPage(
-      'album-789',
-      ['engine-Fast', 'engine-Slow', 'engine-Medium'],
-      1500
-    );
-  }
-  
-  // Запуск демонстрации
-  runDemo().then(() => {
-    console.log('\n🏁 Демонстрация завершена!');
-  });
- 
+}
+
+//7 вывод результата
+loadAlbumPage(
+    'album-123', 
+    ['engine-A', 'engine-B', 'engine-C'], 
+    2500
+)
